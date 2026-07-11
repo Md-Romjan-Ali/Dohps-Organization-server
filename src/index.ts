@@ -25,9 +25,23 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         await client.connect();
-        // const db = client.db('scic-1')
-        // const buyCollection = db.collection('buy')
-
+        const db = client.db('dohps')
+        const successCollection = db.collection('success')
+        app.post("/api/success", async (req, res) => {
+            const corsur = req.body
+            const result = await successCollection.insertOne(corsur)
+            res.send(result)
+        })
+        app.get('/api/getsuccessdata', async (req, res) => {
+            const result = await successCollection.find().toArray()
+            res.send(result)
+        })
+        app.get('/api/getsuccessdata/:id', async (req, res) => {
+            const { id } = req.params
+            const query = { _id: new ObjectId(id) }
+            const result = await successCollection.findOne(query)
+            res.send(result)
+        })
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
