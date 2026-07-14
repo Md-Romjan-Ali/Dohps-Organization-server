@@ -1,7 +1,7 @@
 import { setServers } from "node:dns";
 setServers(["8.8.8.8", "8.8.4.4"]);
 
-import { Application, Request, Response } from "express";
+import { Application, NextFunction, Request, Response } from "express";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -21,13 +21,25 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+    const authHeaders = req.headers.authorization
+    if (!authHeaders) {
+        return res.status(404).send({ message: 'unAuthorized' })
+    }
+    const token = authHeaders.split(' ')[1]
+    console.log(token, 'from backend');
+    if (!token) {
+        return res.status(404).send({ message: 'unAuthorized' })
+    }
+    next()
 
+}
 async function run() {
     try {
         await client.connect();
         const db = client.db('dohps')
         const successCollection = db.collection('success')
-        app.post("/api/success", async (req, res) => {
+        app.post("/api/success", verifyToken, async (req, res) => {
             const corsur = req.body
             const result = await successCollection.insertOne(corsur)
             res.send(result)
@@ -42,15 +54,15 @@ async function run() {
             const result = await successCollection.findOne(query)
             res.send(result)
         })
-        app.delete('/api/deletesuccessdata/:id', async (req, res) => {
+        app.delete('/api/deletesuccessdata/:id', verifyToken, async (req, res) => {
             const { id } = req.params
-            const query = { _id: new ObjectId(id) }
+            const query = { _id: new ObjectId(id as string) }
             const result = await successCollection.deleteOne(query)
             res.send(result)
         })
-        app.patch('/api/updatesuccess/:id', async (req, res) => {
+        app.patch('/api/updatesuccess/:id', verifyToken, async (req, res) => {
             const { id } = req.params
-            const query = { _id: new ObjectId(id) }
+            const query = { _id: new ObjectId(id as string) }
             const update = req.body
             const result = await successCollection.updateOne(
                 query,
