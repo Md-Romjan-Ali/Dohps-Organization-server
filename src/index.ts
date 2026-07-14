@@ -23,11 +23,12 @@ const client = new MongoClient(uri, {
 });
 const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     const authHeaders = req.headers.authorization
+
     if (!authHeaders) {
         return res.status(404).send({ message: 'unAuthorized' })
     }
     const token = authHeaders.split(' ')[1]
-    console.log(token, 'from backend');
+
     if (!token) {
         return res.status(404).send({ message: 'unAuthorized' })
     }
@@ -36,7 +37,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
 }
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
         const db = client.db('dohps')
         const successCollection = db.collection('success')
         app.post("/api/success", verifyToken, async (req, res) => {
@@ -72,7 +73,7 @@ async function run() {
             )
             res.send(result)
         })
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // await client.close();
