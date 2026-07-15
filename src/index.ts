@@ -46,7 +46,16 @@ async function run() {
             res.send(result)
         })
         app.get('/api/getsuccessdata', async (req, res) => {
-            const result = await successCollection.find().toArray()
+            const { search } = req.query
+            const query: any = {}
+            console.log(req.query, 'fro beckend');
+            if (search) {
+                query.$or = [
+                    { universityName: { $regex: search, $options: 'i' } },
+                    { studentName: { $regex: search, $options: 'i' } }
+                ]
+            }
+            const result = await successCollection.find(query).toArray()
             res.send(result)
         })
         app.get('/api/getsuccessdata/:id', async (req, res) => {
